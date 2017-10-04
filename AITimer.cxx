@@ -47,7 +47,7 @@ char const* AITimer::state_str_impl(state_type run_state) const
 
 void AITimer::initialize_impl()
 {
-  ASSERT(!mFrameTimer.isRunning(m_time_point, m_lambda));
+  ASSERT(!mFrameTimer.isRunning());
   set_state(AITimer_start);
 }
 
@@ -57,7 +57,7 @@ void AITimer::multiplex_impl(state_type run_state)
   {
     case AITimer_start:
     {
-      mFrameTimer.create(m_time_point, m_lambda);
+      mFrameTimer.create(std::chrono::steady_clock::now() /*+ m_interval*/, [this](){signal(1);});
       set_state(AITimer_expired);
       wait(1);
       break;
@@ -72,5 +72,6 @@ void AITimer::multiplex_impl(state_type run_state)
 
 void AITimer::abort_impl()
 {
-  mFrameTimer.cancel(m_time_point, m_lambda);
+  mFrameTimer.cancel();
 }
+

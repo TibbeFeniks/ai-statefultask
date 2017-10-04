@@ -74,17 +74,15 @@ class AITimer : public AIStatefulTask {
     static state_type const max_state = AITimer_expired + 1;
 
   private:
-    AIFrameTimer& mFrameTimer;           //!< The actual timer that this object wraps.
+    AIFrameTimer mFrameTimer;           //!< The actual timer that this object wraps.
     double mInterval;                   //!< Input variable: interval after which the event will be generated, in seconds.
-    std::chrono::steady_clock::time_point m_time_point;
-    std::function<void()> const m_lambda;
 
   public:
     AITimer(DEBUG_ONLY(bool debug = false)) :
 #ifdef CWDEBUG
       AIStatefulTask(debug),
 #endif
-      mInterval(0), m_time_point(std::chrono::steady_clock::now()), m_lambda([this](){signal(1);}) { DoutEntering(dc::statefultask(mSMDebug), "AITimer() [" << (void*)this << "]"); }
+      mFrameTimer(), mInterval(0) { DoutEntering(dc::statefultask(mSMDebug), "AITimer() [" << (void*)this << "]"); }
 
     /**
      * @brief Set the interval after which the timer should expire.
@@ -93,7 +91,7 @@ class AITimer : public AIStatefulTask {
      *
      * Call abort() at any time to stop the timer (and delete the AITimer object).
      */
-    void setInterval(double interval) { mInterval = interval; /*m_time_point = std::chrono::steady_clock::now() + std::chrono::duration<double>(interval);*/}
+    void setInterval(double interval) { mInterval = interval; }
 
     /**
      * @brief Get the expiration interval.
@@ -104,7 +102,7 @@ class AITimer : public AIStatefulTask {
 
   protected:
     // Call finish() (or abort()), not delete.
-    ~AITimer() override { DoutEntering(dc::statefultask(mSMDebug), "~AITimer() [" << (void*)this << "]"); mFrameTimer.cancel(m_time_point, m_lambda); }
+    ~AITimer() override { DoutEntering(dc::statefultask(mSMDebug), "~AITimer() [" << (void*)this << "]"); mFrameTimer.cancel(); }
 
     // Implemenation of state_str for run states.
     char const* state_str_impl(state_type run_state) const override;
